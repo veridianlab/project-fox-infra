@@ -75,9 +75,9 @@ variable "vpc_connector_name" {
 }
 
 variable "vpc_egress" {
-  description = "VPC egress setting (all-traffic or private-ranges-only)"
+  description = "VPC egress setting (ALL_TRAFFIC or PRIVATE_RANGES_ONLY)"
   type        = string
-  default     = "private-ranges-only"
+  default     = "PRIVATE_RANGES_ONLY"
 }
 
 variable "service_account_email" {
