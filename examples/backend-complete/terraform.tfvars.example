@@ -1,0 +1,31 @@
+# Staging Configuration
+project_id  = "project-fox-staging"
+region      = "asia-southeast1"
+environment = "staging"
+
+# Backend Service
+backend_image         = "gcr.io/project-fox-staging/lynx-haven:latest"
+backend_port          = 8080
+backend_cpu_limit     = "1"
+backend_memory_limit  = "512Mi"
+backend_min_instances = 0  # Scale to zero for cost savings
+backend_max_instances = 10
+
+# Database
+database_name       = "lynx_haven"
+db_tier             = "db-f1-micro"
+db_availability_type = "ZONAL"
+db_disk_size        = 10
+db_deletion_protection = false  # Staging can be deleted
+db_require_ssl      = false
+
+# VPC Connector
+vpc_connector_ip_range       = "10.8.0.0/28"
+vpc_connector_machine_type   = "e2-micro"
+vpc_connector_min_instances  = 2
+vpc_connector_max_instances  = 3
+
+# Additional environment variables (optional)
+additional_env_vars = {
+  LOG_LEVEL = "debug"
+}

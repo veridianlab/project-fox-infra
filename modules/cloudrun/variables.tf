@@ -58,3 +58,30 @@ variable "env_vars" {
   type        = map(string)
   default     = {}
 }
+
+variable "secrets" {
+  description = "Secret environment variables from Secret Manager"
+  type = map(object({
+    secret_name = string
+    version     = string
+  }))
+  default = {}
+}
+
+variable "vpc_connector_name" {
+  description = "VPC Access Connector name for private network access"
+  type        = string
+  default     = null
+}
+
+variable "vpc_egress" {
+  description = "VPC egress setting (all-traffic or private-ranges-only)"
+  type        = string
+  default     = "private-ranges-only"
+}
+
+variable "service_account_email" {
+  description = "Service account email for the Cloud Run service"
+  type        = string
+  default     = null
+}

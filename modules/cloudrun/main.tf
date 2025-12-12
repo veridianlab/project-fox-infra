@@ -3,6 +3,21 @@ resource "google_cloud_run_v2_service" "default" {
   location = var.region
   
   template {
+    service_account = var.service_account_email
+
+    scaling {
+      min_instance_count = var.min_instances
+      max_instance_count = var.max_instances
+    }
+
+    dynamic "vpc_access" {
+      for_each = var.vpc_connector_name != null ? [1] : []
+      content {
+        connector = var.vpc_connector_name
+        egress    = var.vpc_egress
+      }
+    }
+
     containers {
       image = var.image
       
@@ -24,11 +39,19 @@ resource "google_cloud_run_v2_service" "default" {
           value = env.value
         }
       }
-    }
-    
-    scaling {
-      min_instance_count = var.min_instances
-      max_instance_count = var.max_instances
+
+      dynamic "env" {
+        for_each = var.secrets
+        content {
+          name = env.key
+          value_source {
+            secret_key_ref {
+              secret  = env.value.secret_name
+              version = env.value.version
+            }
+          }
+        }
+      }
     }
   }
   
@@ -44,9 +67,10 @@ resource "google_cloud_run_v2_service" "default" {
 }
 
 # IAM policy to allow unauthenticated access
-resource "google_cloud_run_v2_service_iam_member" "public_access" {
-  name     = google_cloud_run_v2_service.default.name
-  location = google_cloud_run_v2_service.default.location
+resource "google_cloud_run_service_iam_member" "public_access" {
+  project  = var.project_id
+  service  = google_cloud_run_v2_service.default.name
+  location = var.region
   role     = "roles/run.invoker"
   member   = "allUsers"
 }

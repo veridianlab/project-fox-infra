@@ -26,20 +26,134 @@ A production-ready module for deploying containerized applications to Google Clo
 - Configurable CPU and memory limits
 - Auto-scaling configuration
 - Environment variable support
+- Secret Manager integration
+- VPC connector support
+- Custom service account
 - Public access IAM setup
-- Environment-based labeling
 
 **Quick Example**:
 
 ```hcl
 module "my_service" {
-  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/cloudrun?ref=v1.0.0"
+  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/cloudrun?ref=v1.1.0"
 
   project_id   = "my-gcp-project"
   region       = "asia-southeast1"
   service_name = "my-service"
   environment  = "production"
   image        = "gcr.io/my-project/my-image:latest"
+}
+```
+
+### Cloud SQL Module
+
+PostgreSQL database with private IP access and automated backups.
+
+📁 **Path**: `modules/cloudsql`  
+📖 **Documentation**: [modules/cloudsql/README.md](modules/cloudsql/README.md)
+
+**Features**:
+
+- PostgreSQL 15
+- Private IP only (no public access)
+- Automated backups with point-in-time recovery
+- High availability option
+- Query insights
+
+**Quick Example**:
+
+```hcl
+module "database" {
+  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/cloudsql?ref=v1.1.0"
+
+  project_id    = "my-gcp-project"
+  region        = "asia-southeast1"
+  instance_name = "my-database"
+  database_name = "myapp"
+  
+  vpc_network_self_link = module.vpc_network.network_self_link
+  db_password           = var.db_password
+}
+```
+
+### VPC Network Module
+
+VPC network with private IP peering for Cloud SQL.
+
+📁 **Path**: `modules/vpc-network`  
+📖 **Documentation**: [modules/vpc-network/README.md](modules/vpc-network/README.md)
+
+**Features**:
+
+- Custom VPC network
+- Private IP range allocation
+- Service networking connection
+
+**Quick Example**:
+
+```hcl
+module "vpc_network" {
+  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/vpc-network?ref=v1.1.0"
+
+  project_id   = "my-gcp-project"
+  network_name = "my-vpc"
+  environment  = "production"
+}
+```
+
+### VPC Connector Module
+
+Serverless VPC Access connector for Cloud Run.
+
+📁 **Path**: `modules/vpc-connector`  
+📖 **Documentation**: [modules/vpc-connector/README.md](modules/vpc-connector/README.md)
+
+**Features**:
+
+- Serverless VPC Access connector
+- Dedicated subnet
+- Configurable scaling
+
+**Quick Example**:
+
+```hcl
+module "vpc_connector" {
+  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/vpc-connector?ref=v1.1.0"
+
+  project_id       = "my-gcp-project"
+  region           = "asia-southeast1"
+  connector_name   = "my-connector"
+  vpc_network_name = module.vpc_network.network_name
+}
+```
+
+### Secret Manager Module
+
+Secure secret storage with IAM bindings.
+
+📁 **Path**: `modules/secret-manager`  
+📖 **Documentation**: [modules/secret-manager/README.md](modules/secret-manager/README.md)
+
+**Features**:
+
+- Secret creation and versioning
+- Automatic replication
+- IAM access control
+
+**Quick Example**:
+
+```hcl
+module "db_password" {
+  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/secret-manager?ref=v1.1.0"
+
+  project_id   = "my-gcp-project"
+  secret_id    = "database-password"
+  secret_value = var.db_password
+  environment  = "production"
+  
+  accessor_service_accounts = [
+    "my-service@my-gcp-project.iam.gserviceaccount.com"
+  ]
 }
 ```
 
@@ -64,7 +178,7 @@ module "cloud_run_service" {
 ✅ **Good** - Uses specific version:
 
 ```hcl
-source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/cloudrun?ref=v1.0.0"
+source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/cloudrun?ref=v1.1.0"
 ```
 
 ❌ **Bad** - Uses branch (unpredictable):
@@ -79,24 +193,41 @@ When a new module version is released:
 
 ```bash
 # Update the ref parameter in your module source
-source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/cloudrun?ref=v1.1.0"
+source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/cloudrun?ref=v1.2.0"
 
 # Re-initialize Terraform
 terraform init -upgrade
 ```
+
+## Complete Backend Example
+
+For a complete backend infrastructure setup with database, networking, and secrets, see:
+
+📁 **[examples/backend-complete](examples/backend-complete/)**
+
+This example includes:
+
+- VPC Network
+- Cloud SQL PostgreSQL
+- VPC Connector
+- Secret Manager
+- Cloud Run service
+
+Perfect starting point for deploying the lynx-haven backend!
 
 ## Repository Structure
 
 ```text
 project-fox-infra/
 ├── README.md              # This file
-├── VERSIONING.md          # Version management guide
-└── modules/
-    └── cloudrun/          # Cloud Run module
-        ├── main.tf
-        ├── variables.tf
-        ├── outputs.tf
-        └── README.md
+├── modules/
+│   ├── cloudrun/          # Cloud Run service module
+│   ├── cloudsql/          # Cloud SQL PostgreSQL module
+│   ├── vpc-network/       # VPC network with private IP peering
+│   ├── vpc-connector/     # Serverless VPC Access connector
+│   └── secret-manager/    # Secret Manager module
+└── examples/
+    └── backend-complete/  # Complete backend infrastructure example
 ```
 
 ## Contributing
