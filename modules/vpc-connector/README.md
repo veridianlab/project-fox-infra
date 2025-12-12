@@ -19,7 +19,7 @@ module "vpc_connector" {
   region           = "asia-southeast1"
   connector_name   = "cloudrun-connector-staging"
   vpc_network_name = module.vpc_network.network_name
-  
+
   ip_cidr_range = "10.8.0.0/28"
   machine_type  = "e2-micro"
   min_instances = 2
@@ -29,24 +29,24 @@ module "vpc_connector" {
 
 ## Inputs
 
-| Name             | Description                                    | Type     | Default        | Required |
-|------------------|------------------------------------------------|----------|----------------|----------|
-| project_id       | GCP Project ID                                 | `string` | n/a            | yes      |
-| region           | GCP Region                                     | `string` | n/a            | yes      |
-| connector_name   | Name of the VPC Access Connector               | `string` | n/a            | yes      |
-| vpc_network_name | Name of the VPC network                        | `string` | n/a            | yes      |
-| ip_cidr_range    | IP CIDR range for the connector subnet (/28)   | `string` | `"10.8.0.0/28"`| no       |
-| machine_type     | Machine type for connector instances           | `string` | `"e2-micro"`   | no       |
-| min_instances    | Minimum number of connector instances          | `number` | `2`            | no       |
-| max_instances    | Maximum number of connector instances          | `number` | `3`            | no       |
+| Name             | Description                                  | Type     | Default         | Required |
+| ---------------- | -------------------------------------------- | -------- | --------------- | -------- |
+| project_id       | GCP Project ID                               | `string` | n/a             | yes      |
+| region           | GCP Region                                   | `string` | n/a             | yes      |
+| connector_name   | Name of the VPC Access Connector             | `string` | n/a             | yes      |
+| vpc_network_name | Name of the VPC network                      | `string` | n/a             | yes      |
+| ip_cidr_range    | IP CIDR range for the connector subnet (/28) | `string` | `"10.8.0.0/28"` | no       |
+| machine_type     | Machine type for connector instances         | `string` | `"e2-micro"`    | no       |
+| min_instances    | Minimum number of connector instances        | `number` | `2`             | no       |
+| max_instances    | Maximum number of connector instances        | `number` | `3`             | no       |
 
 ## Outputs
 
-| Name                 | Description                          |
-|----------------------|--------------------------------------|
-| connector_id         | ID of the VPC Access Connector       |
-| connector_name       | Name of the VPC Access Connector     |
-| connector_self_link  | Self-link of the VPC Access Connector|
+| Name                | Description                           |
+| ------------------- | ------------------------------------- |
+| connector_id        | ID of the VPC Access Connector        |
+| connector_name      | Name of the VPC Access Connector      |
+| connector_self_link | Self-link of the VPC Access Connector |
 
 ## IP Range Requirements
 

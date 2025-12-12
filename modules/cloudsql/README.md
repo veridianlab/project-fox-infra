@@ -25,17 +25,17 @@ module "cloudsql_staging" {
   region        = "asia-southeast1"
   instance_name = "lynx-haven-staging"
   database_name = "lynx_haven"
-  
+
   tier              = "db-f1-micro"
   availability_type = "ZONAL"
   disk_size         = 10
-  
+
   vpc_network_self_link     = module.vpc_network.network_self_link
   vpc_connection_dependency = module.vpc_network.private_vpc_connection
-  
+
   db_user     = "root"
   db_password = var.db_password
-  
+
   deletion_protection = false
 }
 ```
@@ -50,17 +50,17 @@ module "cloudsql_production" {
   region        = "asia-southeast1"
   instance_name = "lynx-haven-production"
   database_name = "lynx_haven"
-  
+
   tier              = "db-custom-2-7680"  # 2 vCPU, 7.5GB RAM
   availability_type = "REGIONAL"          # High Availability
   disk_size         = 50
-  
+
   vpc_network_self_link     = module.vpc_network.network_self_link
   vpc_connection_dependency = module.vpc_network.private_vpc_connection
-  
+
   db_user     = "root"
   db_password = var.db_password
-  
+
   require_ssl            = true
   deletion_protection    = true
   query_insights_enabled = true
@@ -69,40 +69,40 @@ module "cloudsql_production" {
 
 ## Inputs
 
-| Name                              | Description                                      | Type     | Default          | Required |
-|-----------------------------------|--------------------------------------------------|----------|------------------|----------|
-| project_id                        | GCP Project ID                                   | `string` | n/a              | yes      |
-| region                            | GCP Region                                       | `string` | n/a              | yes      |
-| instance_name                     | Cloud SQL instance name                          | `string` | n/a              | yes      |
-| database_name                     | Name of the database to create                   | `string` | n/a              | yes      |
-| database_version                  | PostgreSQL version                               | `string` | `"POSTGRES_15"`  | no       |
-| tier                              | Machine tier                                     | `string` | `"db-f1-micro"`  | no       |
-| availability_type                 | Availability type (ZONAL or REGIONAL)            | `string` | `"ZONAL"`        | no       |
-| disk_size                         | Disk size in GB                                  | `number` | `10`             | no       |
-| disk_type                         | Disk type (PD_SSD or PD_HDD)                     | `string` | `"PD_SSD"`       | no       |
-| vpc_network_self_link             | Self-link of the VPC network                     | `string` | n/a              | yes      |
-| vpc_connection_dependency         | VPC connection dependency                        | `any`    | `null`           | no       |
-| db_user                           | Database user name                               | `string` | `"root"`         | no       |
-| db_password                       | Database user password                           | `string` | n/a              | yes      |
-| deletion_protection               | Enable deletion protection                       | `bool`   | `true`           | no       |
-| backup_enabled                    | Enable automated backups                         | `bool`   | `true`           | no       |
-| backup_start_time                 | Backup start time (HH:MM)                        | `string` | `"03:00"`        | no       |
-| point_in_time_recovery_enabled    | Enable point-in-time recovery                    | `bool`   | `true`           | no       |
-| transaction_log_retention_days    | Transaction log retention days                   | `number` | `7`              | no       |
-| retained_backups                  | Number of backups to retain                      | `number` | `7`              | no       |
-| require_ssl                       | Require SSL for connections                      | `bool`   | `false`          | no       |
-| max_connections                   | Maximum number of connections                    | `string` | `"100"`          | no       |
-| query_insights_enabled            | Enable query insights                            | `bool`   | `false`          | no       |
+| Name                           | Description                           | Type     | Default         | Required |
+| ------------------------------ | ------------------------------------- | -------- | --------------- | -------- |
+| project_id                     | GCP Project ID                        | `string` | n/a             | yes      |
+| region                         | GCP Region                            | `string` | n/a             | yes      |
+| instance_name                  | Cloud SQL instance name               | `string` | n/a             | yes      |
+| database_name                  | Name of the database to create        | `string` | n/a             | yes      |
+| database_version               | PostgreSQL version                    | `string` | `"POSTGRES_15"` | no       |
+| tier                           | Machine tier                          | `string` | `"db-f1-micro"` | no       |
+| availability_type              | Availability type (ZONAL or REGIONAL) | `string` | `"ZONAL"`       | no       |
+| disk_size                      | Disk size in GB                       | `number` | `10`            | no       |
+| disk_type                      | Disk type (PD_SSD or PD_HDD)          | `string` | `"PD_SSD"`      | no       |
+| vpc_network_self_link          | Self-link of the VPC network          | `string` | n/a             | yes      |
+| vpc_connection_dependency      | VPC connection dependency             | `any`    | `null`          | no       |
+| db_user                        | Database user name                    | `string` | `"root"`        | no       |
+| db_password                    | Database user password                | `string` | n/a             | yes      |
+| deletion_protection            | Enable deletion protection            | `bool`   | `true`          | no       |
+| backup_enabled                 | Enable automated backups              | `bool`   | `true`          | no       |
+| backup_start_time              | Backup start time (HH:MM)             | `string` | `"03:00"`       | no       |
+| point_in_time_recovery_enabled | Enable point-in-time recovery         | `bool`   | `true`          | no       |
+| transaction_log_retention_days | Transaction log retention days        | `number` | `7`             | no       |
+| retained_backups               | Number of backups to retain           | `number` | `7`             | no       |
+| require_ssl                    | Require SSL for connections           | `bool`   | `false`         | no       |
+| max_connections                | Maximum number of connections         | `string` | `"100"`         | no       |
+| query_insights_enabled         | Enable query insights                 | `bool`   | `false`         | no       |
 
 ## Outputs
 
-| Name                      | Description                              |
-|---------------------------|------------------------------------------|
-| instance_name             | Name of the Cloud SQL instance           |
-| instance_connection_name  | Connection name for Cloud SQL Proxy      |
-| private_ip_address        | Private IP address of the instance       |
-| database_name             | Name of the created database             |
-| db_user                   | Database user name                       |
+| Name                     | Description                         |
+| ------------------------ | ----------------------------------- |
+| instance_name            | Name of the Cloud SQL instance      |
+| instance_connection_name | Connection name for Cloud SQL Proxy |
+| private_ip_address       | Private IP address of the instance  |
+| database_name            | Name of the created database        |
+| db_user                  | Database user name                  |
 
 ## Machine Tiers
 

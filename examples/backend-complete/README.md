@@ -4,7 +4,7 @@ This example demonstrates how to set up a complete backend infrastructure with:
 
 - VPC Network
 - Cloud SQL PostgreSQL
-- VPC Connector  
+- VPC Connector
 - Secret Manager
 - Cloud Run service
 
@@ -12,6 +12,7 @@ This example demonstrates how to set up a complete backend infrastructure with:
 
 1. GCP Project created
 2. Required APIs enabled:
+
    - Cloud Run API (`run.googleapis.com`)
    - Cloud SQL Admin API (`sqladmin.googleapis.com`)
    - Serverless VPC Access API (`vpcaccess.googleapis.com`)

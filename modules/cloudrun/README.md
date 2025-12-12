@@ -40,16 +40,16 @@ module "frontend" {
   region       = "asia-southeast1"
   service_name = "frontend-production"
   environment  = "production"
-  
+
   image        = "gcr.io/project-fox-production/frontend:v1.2.3"
   port         = 3000"
-  
+
   cpu_limit    = "2"
   memory_limit = "1Gi"
-  
+
   min_instances = 1
   max_instances = 100
-  
+
   env_vars = {
     NODE_ENV = "production"
     API_URL  = "https://api.example.com"
@@ -71,23 +71,23 @@ module "backend_api" {
   region       = "asia-southeast1"
   service_name = "lynx-haven-api"
   environment  = "production"
-  
+
   image        = "gcr.io/project-fox-production/lynx-haven:v2.1.0"
   port         = 8080
-  
+
   cpu_limit    = "2"
   memory_limit = "2Gi"
-  
+
   min_instances = 2
   max_instances = 50
-  
+
   # VPC Access for Cloud SQL
   vpc_connector_name = module.vpc_connector.connector_id
   vpc_egress         = "private-ranges-only"
-  
+
   # Service account for Secret Manager access
   service_account_email = module.service_account.email
-  
+
   # Environment variables
   env_vars = {
     GIN_MODE = "release"
@@ -96,7 +96,7 @@ module "backend_api" {
     DB_NAME  = "lynx_haven"
     DB_USER  = "root"
   }
-  
+
   # Secrets from Secret Manager
   secrets = {
     DB_PASSWORD = {
@@ -130,23 +130,23 @@ output "api_url" {
 
 ## Inputs
 
-| Name                  | Description                                       | Type                                      | Default                | Required |
-| --------------------- | ------------------------------------------------- | ----------------------------------------- | ---------------------- | :------: |
-| project_id            | GCP Project ID                                    | `string`                                  | n/a                    |   yes    |
-| region                | GCP Region                                        | `string`                                  | n/a                    |   yes    |
-| service_name          | Cloud Run service name                            | `string`                                  | n/a                    |   yes    |
-| environment           | Environment name (staging/production)             | `string`                                  | n/a                    |   yes    |
-| image                 | Container image URL                               | `string`                                  | n/a                    |   yes    |
-| port                  | Container port                                    | `number`                                  | `3000`                 |    no    |
-| cpu_limit             | CPU limit for the container                       | `string`                                  | `"1"`                  |    no    |
-| memory_limit          | Memory limit for the container                    | `string`                                  | `"512Mi"`              |    no    |
-| min_instances         | Minimum number of instances                       | `number`                                  | `1`                    |    no    |
-| max_instances         | Maximum number of instances                       | `number`                                  | `10`                   |    no    |
-| env_vars              | Environment variables                             | `map(string)`                             | `{}`                   |    no    |
-| secrets               | Secret environment variables from Secret Manager  | `map(object({secret_name, version}))`     | `{}`                   |    no    |
-| vpc_connector_name    | VPC Access Connector name for private network     | `string`                                  | `null`                 |    no    |
-| vpc_egress            | VPC egress setting (all-traffic or private-ranges)| `string`                                  | `"private-ranges-only"`|    no    |
-| service_account_email | Service account email for the Cloud Run service   | `string`                                  | `null`                 |    no    |
+| Name                  | Description                                        | Type                                  | Default                 | Required |
+| --------------------- | -------------------------------------------------- | ------------------------------------- | ----------------------- | :------: |
+| project_id            | GCP Project ID                                     | `string`                              | n/a                     |   yes    |
+| region                | GCP Region                                         | `string`                              | n/a                     |   yes    |
+| service_name          | Cloud Run service name                             | `string`                              | n/a                     |   yes    |
+| environment           | Environment name (staging/production)              | `string`                              | n/a                     |   yes    |
+| image                 | Container image URL                                | `string`                              | n/a                     |   yes    |
+| port                  | Container port                                     | `number`                              | `3000`                  |    no    |
+| cpu_limit             | CPU limit for the container                        | `string`                              | `"1"`                   |    no    |
+| memory_limit          | Memory limit for the container                     | `string`                              | `"512Mi"`               |    no    |
+| min_instances         | Minimum number of instances                        | `number`                              | `1`                     |    no    |
+| max_instances         | Maximum number of instances                        | `number`                              | `10`                    |    no    |
+| env_vars              | Environment variables                              | `map(string)`                         | `{}`                    |    no    |
+| secrets               | Secret environment variables from Secret Manager   | `map(object({secret_name, version}))` | `{}`                    |    no    |
+| vpc_connector_name    | VPC Access Connector name for private network      | `string`                              | `null`                  |    no    |
+| vpc_egress            | VPC egress setting (all-traffic or private-ranges) | `string`                              | `"private-ranges-only"` |    no    |
+| service_account_email | Service account email for the Cloud Run service    | `string`                              | `null`                  |    no    |
 
 ## Outputs
 

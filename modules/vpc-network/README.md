@@ -23,20 +23,20 @@ module "vpc_network" {
 ## Inputs
 
 | Name         | Description                           | Type     | Required |
-|--------------|---------------------------------------|----------|----------|
+| ------------ | ------------------------------------- | -------- | -------- |
 | project_id   | GCP Project ID                        | `string` | yes      |
 | network_name | Name of the VPC network               | `string` | yes      |
 | environment  | Environment name (staging/production) | `string` | yes      |
 
 ## Outputs
 
-| Name                      | Description                                       |
-|---------------------------|---------------------------------------------------|
-| network_id                | The ID of the VPC network                         |
-| network_name              | The name of the VPC network                       |
-| network_self_link         | The self-link of the VPC network                  |
-| private_ip_range_name     | Name of the private IP range for Cloud SQL        |
-| private_vpc_connection    | The private VPC connection for dependency mgmt    |
+| Name                   | Description                                    |
+| ---------------------- | ---------------------------------------------- |
+| network_id             | The ID of the VPC network                      |
+| network_name           | The name of the VPC network                    |
+| network_self_link      | The self-link of the VPC network               |
+| private_ip_range_name  | Name of the private IP range for Cloud SQL     |
+| private_vpc_connection | The private VPC connection for dependency mgmt |
 
 ## Notes
 

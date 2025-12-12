@@ -28,18 +28,18 @@ module "db_password" {
 
 ## Inputs
 
-| Name                      | Description                                           | Type           | Default | Required |
-|---------------------------|-------------------------------------------------------|----------------|---------|----------|
-| project_id                | GCP Project ID                                        | `string`       | n/a     | yes      |
-| secret_id                 | ID of the secret (name)                               | `string`       | n/a     | yes      |
-| secret_value              | Value of the secret                                   | `string`       | n/a     | yes      |
-| environment               | Environment name (staging/production)                 | `string`       | n/a     | yes      |
-| accessor_service_accounts | Service account emails that can access this secret    | `list(string)` | `[]`    | no       |
+| Name                      | Description                                        | Type           | Default | Required |
+| ------------------------- | -------------------------------------------------- | -------------- | ------- | -------- |
+| project_id                | GCP Project ID                                     | `string`       | n/a     | yes      |
+| secret_id                 | ID of the secret (name)                            | `string`       | n/a     | yes      |
+| secret_value              | Value of the secret                                | `string`       | n/a     | yes      |
+| environment               | Environment name (staging/production)              | `string`       | n/a     | yes      |
+| accessor_service_accounts | Service account emails that can access this secret | `list(string)` | `[]`    | no       |
 
 ## Outputs
 
 | Name                | Description                    |
-|---------------------|--------------------------------|
+| ------------------- | ------------------------------ |
 | secret_id           | The ID of the secret           |
 | secret_name         | The name of the secret         |
 | secret_version_name | The version name of the secret |

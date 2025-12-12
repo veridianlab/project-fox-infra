@@ -70,7 +70,7 @@ module "database" {
   region        = "asia-southeast1"
   instance_name = "my-database"
   database_name = "myapp"
-  
+
   vpc_network_self_link = module.vpc_network.network_self_link
   db_password           = var.db_password
 }
@@ -150,7 +150,7 @@ module "db_password" {
   secret_id    = "database-password"
   secret_value = var.db_password
   environment  = "production"
-  
+
   accessor_service_accounts = [
     "my-service@my-gcp-project.iam.gserviceaccount.com"
   ]
