@@ -98,6 +98,21 @@ module "vpc_connector" {
   depends_on = [module.vpc_network]
 }
 
+# 4b. Cloud NAT with Static IP (for outbound API calls)
+module "cloud_nat" {
+  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/cloud-nat?ref=v1.1.0"
+
+  project_id       = var.project_id
+  region           = var.region
+  nat_name         = "cloudrun-nat-${var.environment}"
+  vpc_network_name = module.vpc_network.network_name
+
+  enable_logging = var.enable_nat_logging
+  log_filter     = var.nat_log_filter
+
+  depends_on = [module.vpc_network]
+}
+
 # 5. Cloud Run Backend Service
 module "backend_service" {
   source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/cloudrun?ref=v1.1.0"
@@ -116,9 +131,9 @@ module "backend_service" {
   min_instances = var.backend_min_instances
   max_instances = var.backend_max_instances
 
-  # VPC Access for Cloud SQL
+  # VPC Access for Cloud SQL and Cloud NAT for outbound traffic
   vpc_connector_name = module.vpc_connector.connector_id
-  vpc_egress         = "private-ranges-only"
+  vpc_egress         = "all-traffic"  # Route ALL traffic through VPC to use Cloud NAT
 
   # Environment variables
   env_vars = merge(

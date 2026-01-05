@@ -101,6 +101,41 @@ module "vpc_network" {
 }
 ```
 
+### Cloud NAT Module
+
+Cloud NAT with static external IP for consistent egress traffic from Cloud Run.
+
+📁 **Path**: `modules/cloud-nat`  
+📖 **Documentation**: [modules/cloud-nat/README.md](modules/cloud-nat/README.md)
+
+**Features**:
+
+- Static external IP address reservation
+- Cloud Router configuration
+- Cloud NAT gateway setup
+- Configurable logging and port allocation
+- Perfect for third-party API IP allowlisting
+
+**Quick Example**:
+
+```hcl
+module "cloud_nat" {
+  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/cloud-nat?ref=v1.1.0"
+
+  project_id       = "my-gcp-project"
+  region           = "asia-southeast1"
+  nat_name         = "my-nat"
+  vpc_network_name = module.vpc_network.network_name
+}
+
+# Output the static IP for allowlisting
+output "nat_ip" {
+  value = module.cloud_nat.nat_ip_address
+}
+```
+
+**Use Case**: When your Cloud Run service calls third-party APIs that require IP allowlisting, this module provides a consistent static IP for all egress traffic.
+
 ### VPC Connector Module
 
 Serverless VPC Access connector for Cloud Run.
@@ -210,19 +245,25 @@ This example includes:
 - VPC Network
 - Cloud SQL PostgreSQL
 - VPC Connector
+- Cloud NAT with Static IP (for third-party API calls)
 - Secret Manager
 - Cloud Run service
 
 Perfect starting point for deploying the lynx-haven backend!
+
+**Note**: For static IP egress (required when calling third-party APIs that need IP allowlisting), see the [STATIC_IP_SETUP.md](STATIC_IP_SETUP.md) guide.
 
 ## Repository Structure
 
 ```text
 project-fox-infra/
 ├── README.md              # This file
+├── CLOUD_NAT_CHANGES.md   # Cloud NAT implementation summary
+├── STATIC_IP_SETUP.md     # Static IP setup guide
 ├── modules/
 │   ├── cloudrun/          # Cloud Run service module
 │   ├── cloudsql/          # Cloud SQL PostgreSQL module
+│   ├── cloud-nat/         # Cloud NAT with static IP module
 │   ├── vpc-network/       # VPC network with private IP peering
 │   ├── vpc-connector/     # Serverless VPC Access connector
 │   └── secret-manager/    # Secret Manager module

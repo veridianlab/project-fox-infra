@@ -34,6 +34,16 @@ output "vpc_connector_name" {
   value       = module.vpc_connector.connector_name
 }
 
+output "cloud_nat_ip_address" {
+  description = "Static external IP address for Cloud NAT - provide this to third-party API providers for IP allowlisting"
+  value       = module.cloud_nat.nat_ip_address
+}
+
+output "cloud_nat_name" {
+  description = "Cloud NAT gateway name"
+  value       = module.cloud_nat.nat_name
+}
+
 output "secret_name" {
   description = "Database password secret name"
   value       = module.db_password_secret.secret_name

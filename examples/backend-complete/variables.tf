@@ -114,3 +114,15 @@ variable "additional_env_vars" {
   type        = map(string)
   default     = {}
 }
+
+variable "enable_nat_logging" {
+  description = "Enable logging for Cloud NAT"
+  type        = bool
+  default     = true
+}
+
+variable "nat_log_filter" {
+  description = "Cloud NAT log filter (ERRORS_ONLY, TRANSLATIONS_ONLY, ALL)"
+  type        = string
+  default     = "ERRORS_ONLY"
+}
