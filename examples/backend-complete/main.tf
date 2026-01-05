@@ -100,7 +100,7 @@ module "vpc_connector" {
 
 # 4b. Cloud NAT with Static IP (for outbound API calls)
 module "cloud_nat" {
-  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/cloud-nat?ref=v1.1.0"
+  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/cloud-nat?ref=v1.2.0"
 
   project_id       = var.project_id
   region           = var.region
