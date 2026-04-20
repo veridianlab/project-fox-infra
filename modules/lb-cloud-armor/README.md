@@ -22,7 +22,7 @@ Global external HTTPS Load Balancer with a Cloud Armor policy for IP allowlistin
 
 ```hcl
 module "api_lb" {
-  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/lb-cloud-armor?ref=v1.3.0"
+  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/lb-cloud-armor?ref=v1.1.4"
 
   project_id  = "project-fox-staging"
   region      = "asia-southeast1"
@@ -49,7 +49,7 @@ Pair with Cloud Run:
 
 ```hcl
 module "backend_service" {
-  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/cloudrun?ref=v1.3.0"
+  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/cloudrun?ref=v1.1.4"
 
   # ...
   ingress = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"

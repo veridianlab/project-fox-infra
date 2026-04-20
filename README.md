@@ -155,7 +155,7 @@ Global external HTTPS Load Balancer with Cloud Armor for IP allowlisting in fron
 
 ```hcl
 module "api_lb" {
-  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/lb-cloud-armor?ref=v1.3.0"
+  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/lb-cloud-armor?ref=v1.1.4"
 
   project_id  = "my-gcp-project"
   region      = "asia-southeast1"
