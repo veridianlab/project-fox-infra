@@ -172,6 +172,41 @@ module "api_lb" {
 
 **Use Case**: Restrict access to an internal/staging Cloud Run service to known office, hotel, or VPN IP ranges. Pair with `ingress = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"` on the cloudrun module so the `*.run.app` URL can't bypass the allowlist.
 
+### Tailscale Exit Node Module
+
+GCP VM configured as a Tailscale exit node with a static external IP — a stable egress IP to feed into Cloud Armor / third-party allowlists.
+
+📁 **Path**: `modules/tailscale-exit-node`  
+📖 **Documentation**: [modules/tailscale-exit-node/README.md](modules/tailscale-exit-node/README.md)
+
+**Features**:
+
+- Static external IPv4 + e2-micro Ubuntu 22.04 VM
+- `can_ip_forward = true` (required for exit-node routing)
+- Firewall rules for Tailscale (UDP 41641) and SSH (TCP 22, source-restrictable)
+- Outputs IP as both raw address and `/32` CIDR
+
+**Quick Example**:
+
+```hcl
+module "tailscale_exit_node" {
+  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/tailscale-exit-node?ref=v1.1.5"
+
+  project_id  = "my-gcp-project"
+  region      = "asia-southeast1"
+  zone        = "asia-southeast1-b"
+  environment = "production"
+}
+
+# Feed the IP straight into Cloud Armor
+module "api_lb" {
+  # ...
+  allowed_ip_ranges = [module.tailscale_exit_node.exit_node_ip_cidr]
+}
+```
+
+**Use Case**: Developers / services route outbound via Tailscale → all traffic leaves GCP from this single static IP → only that one IP needs to be allowlisted upstream.
+
 ### VPC Connector Module
 
 Serverless VPC Access connector for Cloud Run.
@@ -301,6 +336,7 @@ project-fox-infra/
 │   ├── cloudsql/          # Cloud SQL PostgreSQL module
 │   ├── cloud-nat/         # Cloud NAT with static IP module
 │   ├── lb-cloud-armor/    # Global HTTPS LB + Cloud Armor IP allowlisting
+│   ├── tailscale-exit-node/ # Tailscale exit node VM with static IP
 │   ├── vpc-network/       # VPC network with private IP peering
 │   ├── vpc-connector/     # Serverless VPC Access connector
 │   └── secret-manager/    # Secret Manager module
