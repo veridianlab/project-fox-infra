@@ -1,7 +1,8 @@
 resource "google_cloud_run_v2_service" "default" {
   name     = var.service_name
   location = var.region
-  
+  ingress  = var.ingress
+
   template {
     service_account = var.service_account_email
 

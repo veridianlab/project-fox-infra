@@ -147,6 +147,7 @@ output "api_url" {
 | vpc_connector_name    | VPC Access Connector name for private network      | `string`                              | `null`                  |    no    |
 | vpc_egress            | VPC egress setting (all-traffic or private-ranges) | `string`                              | `"private-ranges-only"` |    no    |
 | service_account_email | Service account email for the Cloud Run service    | `string`                              | `null`                  |    no    |
+| ingress               | Cloud Run ingress (see note below)                 | `string`                              | `"INGRESS_TRAFFIC_ALL"` |    no    |
 
 ## Outputs
 
@@ -186,6 +187,7 @@ output "api_url" {
 - Services are labeled with `environment` and `managed-by=terraform`
 - Traffic is always routed 100% to the latest revision
 - Requires the Cloud Run API to be enabled in your GCP project
+- **Ingress** defaults to `INGRESS_TRAFFIC_ALL` (the `*.run.app` URL is reachable). When fronting the service with the `lb-cloud-armor` module for IP allowlisting, set `ingress = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"` so the `*.run.app` URL stops bypassing the LB.
 
 ## Versioning
 

@@ -136,6 +136,42 @@ output "nat_ip" {
 
 **Use Case**: When your Cloud Run service calls third-party APIs that require IP allowlisting, this module provides a consistent static IP for all egress traffic.
 
+### Load Balancer + Cloud Armor Module
+
+Global external HTTPS Load Balancer with Cloud Armor for IP allowlisting in front of a Cloud Run service.
+
+📁 **Path**: `modules/lb-cloud-armor`  
+📖 **Documentation**: [modules/lb-cloud-armor/README.md](modules/lb-cloud-armor/README.md)
+
+**Features**:
+
+- Global external HTTPS LB with reserved static IPv4
+- Serverless NEG to Cloud Run
+- Cloud Armor policy: default deny 403, allowlist for hotel / VPN / office IPs
+- Google-managed SSL cert (multi-domain)
+- Backend service request logging
+
+**Quick Example**:
+
+```hcl
+module "api_lb" {
+  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/lb-cloud-armor?ref=v1.3.0"
+
+  project_id  = "my-gcp-project"
+  region      = "asia-southeast1"
+  lb_name     = "api-lb"
+  environment = "production"
+
+  cloudrun_service_name     = module.backend_service.service_name
+  cloudrun_service_location = module.backend_service.service_location
+
+  domains           = ["api.example.com"]
+  allowed_ip_ranges = ["203.0.113.10/32", "198.51.100.0/24"]
+}
+```
+
+**Use Case**: Restrict access to an internal/staging Cloud Run service to known office, hotel, or VPN IP ranges. Pair with `ingress = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"` on the cloudrun module so the `*.run.app` URL can't bypass the allowlist.
+
 ### VPC Connector Module
 
 Serverless VPC Access connector for Cloud Run.
@@ -264,6 +300,7 @@ project-fox-infra/
 │   ├── cloudrun/          # Cloud Run service module
 │   ├── cloudsql/          # Cloud SQL PostgreSQL module
 │   ├── cloud-nat/         # Cloud NAT with static IP module
+│   ├── lb-cloud-armor/    # Global HTTPS LB + Cloud Armor IP allowlisting
 │   ├── vpc-network/       # VPC network with private IP peering
 │   ├── vpc-connector/     # Serverless VPC Access connector
 │   └── secret-manager/    # Secret Manager module
