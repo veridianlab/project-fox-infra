@@ -75,13 +75,13 @@ variable "vpc_connector_name" {
 }
 
 variable "vpc_egress" {
-  description = "VPC egress setting: 'all-traffic' routes ALL traffic through VPC (required for Cloud NAT), 'private-ranges-only' routes only private IP traffic through VPC"
+  description = "VPC egress setting: 'ALL_TRAFFIC' routes all traffic through VPC (required for Cloud NAT), 'PRIVATE_RANGES_ONLY' routes only private IP traffic through VPC"
   type        = string
-  default     = "private-ranges-only"
-  
+  default     = "PRIVATE_RANGES_ONLY"
+
   validation {
-    condition     = contains(["all-traffic", "private-ranges-only"], var.vpc_egress)
-    error_message = "vpc_egress must be either 'all-traffic' or 'private-ranges-only'"
+    condition     = contains(["ALL_TRAFFIC", "PRIVATE_RANGES_ONLY"], var.vpc_egress)
+    error_message = "vpc_egress must be either 'ALL_TRAFFIC' or 'PRIVATE_RANGES_ONLY'"
   }
 }
 
