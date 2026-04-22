@@ -91,6 +91,12 @@ variable "service_account_email" {
   default     = null
 }
 
+variable "cpu_idle" {
+  description = "Whether CPU is throttled when the container is not handling a request. true = request-based billing (CPU only allocated during requests), false = instance-based billing (CPU always allocated). Set to false if your service needs background processing or low-latency startup."
+  type        = bool
+  default     = true
+}
+
 variable "ingress" {
   description = "Cloud Run ingress setting. Use INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER when fronting with a global HTTPS LB + Cloud Armor."
   type        = string
