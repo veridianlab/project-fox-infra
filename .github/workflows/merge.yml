@@ -1,0 +1,35 @@
+name: "CI: Merge to main"
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: merge-to-main
+
+jobs:
+  tag:
+    uses: ./.github/workflows/tag.yml
+    with:
+      target_ref: ${{ github.ref_name }}
+    secrets: inherit
+
+  create-release:
+    needs: tag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Create GitHub Release
+        uses: elgohr/Github-Release-Action@v5
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          title: Release ${{ needs.tag.outputs.tag }}
+          tag: ${{ needs.tag.outputs.tag }}

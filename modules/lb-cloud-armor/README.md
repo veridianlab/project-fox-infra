@@ -6,7 +6,7 @@ Global external HTTPS Load Balancer with a Cloud Armor policy for IP allowlistin
 
 - Global external HTTPS LB with a reserved static IPv4 address
 - Serverless NEG pointing at a Cloud Run service
-- Cloud Armor policy: default deny 403, allow rule for listed CIDRs
+- Cloud Armor policy: default deny 403, allow rule for address group IPs
 - Google-managed SSL certificate (multi-domain / SAN supported)
 - Backend service logging at 100% sample rate (denied and allowed requests show up in Logs Explorer)
 
@@ -14,7 +14,7 @@ Global external HTTPS Load Balancer with a Cloud Armor policy for IP allowlistin
 
 1. Client hits `https://<domain>/` → DNS resolves to the LB's static IP.
 2. Global forwarding rule (port 443) → target HTTPS proxy → URL map → backend service.
-3. Cloud Armor evaluates the source IP against the allowlist. Non-matching IPs get a 403.
+3. Cloud Armor evaluates the source IP against the address group. Non-matching IPs get a 403.
 4. Allowed requests forward via the serverless NEG to Cloud Run.
 5. Cloud Run is set to `ingress = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"` so the `*.run.app` URL can't be used to bypass the LB.
 
@@ -34,10 +34,7 @@ module "api_lb" {
 
   domains = ["api.staging.example.com"]
 
-  allowed_ip_ranges = [
-    "203.0.113.10/32", # hotel office
-    "198.51.100.0/24", # dev VPN
-  ]
+  address_group_name = "my-allowlist"
 }
 
 output "lb_ip" {
@@ -67,7 +64,7 @@ module "backend_service" {
 | cloudrun_service_name     | Name of the Cloud Run service behind the LB   | `string`       | -       | yes      |
 | cloudrun_service_location | Region of the Cloud Run service (NEG region)   | `string`       | -       | yes      |
 | domains                   | Domains for the managed SSL cert (1-100 SANs)  | `list(string)` | -       | yes      |
-| allowed_ip_ranges         | CIDRs allowed by Cloud Armor; rest denied 403  | `list(string)` | -       | yes      |
+| address_group_name        | Name of the Cloud Armor address group for IP allowlisting | `string` | -       | yes      |
 
 ## Outputs
 
