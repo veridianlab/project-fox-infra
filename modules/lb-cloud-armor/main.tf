@@ -26,6 +26,7 @@ resource "google_compute_security_policy" "cloud_armor" {
     action   = "allow"
     priority = 1000
     match {
+      # Evaluates whether the source IP belongs to the named Cloud Armor address group
       expr {
         expression = "evaluateAddressGroup('${var.address_group_name}', origin.ip)"
       }
@@ -33,8 +34,8 @@ resource "google_compute_security_policy" "cloud_armor" {
     description = "Allow address group IPs"
   }
 
-  # Default rule is immutable in existence (priority 2147483647) but its action is editable.
-  # Declaring it here makes the deny(403) default explicit.
+  # Cloud Armor includes an implicit default rule at priority 2147483647.
+  # Declaring it explicitly here makes the deny(403) action visible in Terraform state.
   rule {
     action   = "deny(403)"
     priority = 2147483647
