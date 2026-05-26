@@ -16,7 +16,7 @@ resource "google_compute_region_network_endpoint_group" "serverless_neg" {
   }
 }
 
-# Cloud Armor security policy: default deny, allow listed IPs
+# Cloud Armor security policy: default deny, allow address group IPs
 resource "google_compute_security_policy" "cloud_armor" {
   project = var.project_id
   name    = "${var.lb_name}-armor"
@@ -26,12 +26,11 @@ resource "google_compute_security_policy" "cloud_armor" {
     action   = "allow"
     priority = 1000
     match {
-      versioned_expr = "SRC_IPS_V1"
-      config {
-        src_ip_ranges = var.allowed_ip_ranges
+      expr {
+        expression = "evaluateAddressGroup('${var.address_group_name}', origin.ip)"
       }
     }
-    description = "Allow allowlisted IPs"
+    description = "Allow address group IPs"
   }
 
   # Default rule is immutable in existence (priority 2147483647) but its action is editable.
