@@ -1,6 +1,11 @@
 output "exit_node_ip" {
-  description = "Static external IP of the Tailscale exit node. Add this IP to your Cloud Armor address group to allowlist traffic egressing the exit node."
+  description = "Static external IP of the Tailscale exit node. Add as a /32 CIDR to Cloud Armor allowed_ip_ranges."
   value       = google_compute_address.exit_node_ip.address
+}
+
+output "exit_node_ip_cidr" {
+  description = "Exit node IP formatted as a /32 CIDR, ready to drop into allowed_ip_ranges."
+  value       = "${google_compute_address.exit_node_ip.address}/32"
 }
 
 output "exit_node_name" {

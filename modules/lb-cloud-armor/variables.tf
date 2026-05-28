@@ -38,12 +38,12 @@ variable "domains" {
   }
 }
 
-variable "address_group_name" {
-  description = "Name of the Cloud Armor address group to evaluate for IP allowlisting. The group is managed outside Terraform (via backend API)."
-  type        = string
+variable "allowed_ip_ranges" {
+  description = "CIDR ranges allowed through Cloud Armor. Everything else is denied with HTTP 403."
+  type        = list(string)
 
   validation {
-    condition     = length(var.address_group_name) > 0
-    error_message = "address_group_name must not be empty."
+    condition     = length(var.allowed_ip_ranges) > 0
+    error_message = "allowed_ip_ranges must contain at least one CIDR — an empty list would make the LB deny all traffic."
   }
 }
