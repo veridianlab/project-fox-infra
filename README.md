@@ -147,7 +147,7 @@ Global external HTTPS Load Balancer with Cloud Armor for IP allowlisting in fron
 
 - Global external HTTPS LB with reserved static IPv4
 - Serverless NEG to Cloud Run
-- Cloud Armor policy: default deny 403, allow rule for address group IPs
+- Cloud Armor policy: default deny 403, allowlist for hotel / VPN / office IPs
 - Google-managed SSL cert (multi-domain)
 - Backend service request logging
 
@@ -165,8 +165,8 @@ module "api_lb" {
   cloudrun_service_name     = module.backend_service.service_name
   cloudrun_service_location = module.backend_service.service_location
 
-  domains            = ["api.example.com"]
-  address_group_name = "my-allowlist"
+  domains           = ["api.example.com"]
+  allowed_ip_ranges = ["203.0.113.10/32", "198.51.100.0/24"]
 }
 ```
 
@@ -184,7 +184,7 @@ GCP VM configured as a Tailscale exit node with a static external IP — a stabl
 - Static external IPv4 + e2-micro Ubuntu 22.04 VM
 - `can_ip_forward = true` (required for exit-node routing)
 - Firewall rules for Tailscale (UDP 41641) and SSH (TCP 22, source-restrictable)
-- Outputs static external IP for adding to a Cloud Armor address group
+- Outputs IP as both raw address and `/32` CIDR
 
 **Quick Example**:
 
@@ -198,9 +198,11 @@ module "tailscale_exit_node" {
   environment = "production"
 }
 
-# After deploying, add the exit node IP to your Cloud Armor address group
-# EXIT_IP=$(terraform output -raw exit_node_ip)
-# gcloud compute address-groups add-items my-allowlist --items="${EXIT_IP}/32" --region=asia-southeast1
+# Feed the IP straight into Cloud Armor
+module "api_lb" {
+  # ...
+  allowed_ip_ranges = [module.tailscale_exit_node.exit_node_ip_cidr]
+}
 ```
 
 **Use Case**: Developers / services route outbound via Tailscale → all traffic leaves GCP from this single static IP → only that one IP needs to be allowlisted upstream.

@@ -16,7 +16,7 @@ resource "google_compute_region_network_endpoint_group" "serverless_neg" {
   }
 }
 
-# Cloud Armor security policy: default deny, allow address group IPs
+# Cloud Armor security policy: default deny, allow listed IPs
 resource "google_compute_security_policy" "cloud_armor" {
   project = var.project_id
   name    = "${var.lb_name}-armor"
@@ -26,16 +26,16 @@ resource "google_compute_security_policy" "cloud_armor" {
     action   = "allow"
     priority = 1000
     match {
-      # Evaluates whether the source IP belongs to the named Cloud Armor address group
-      expr {
-        expression = "evaluateAddressGroup('${var.address_group_name}', origin.ip)"
+      versioned_expr = "SRC_IPS_V1"
+      config {
+        src_ip_ranges = var.allowed_ip_ranges
       }
     }
-    description = "Allow address group IPs"
+    description = "Allow allowlisted IPs"
   }
 
-  # Cloud Armor includes an implicit default rule at priority 2147483647.
-  # Declaring it explicitly here makes the deny(403) action visible in Terraform state.
+  # Default rule is immutable in existence (priority 2147483647) but its action is editable.
+  # Declaring it here makes the deny(403) default explicit.
   rule {
     action   = "deny(403)"
     priority = 2147483647

@@ -8,7 +8,7 @@ GCP VM configured as a Tailscale exit node with a static external IP. The static
 - e2-micro VM running Ubuntu 22.04 LTS (defaults; overridable)
 - `can_ip_forward = true` (required for exit-node routing)
 - Firewall rules: Tailscale UDP 41641 (open) + SSH TCP 22 (source-restrictable, toggleable)
-- Outputs the IP as a raw address ready to add to a Cloud Armor address group
+- Outputs the IP as both a raw address and a `/32` CIDR ready to paste into `allowed_ip_ranges`
 
 ## How It Works
 
@@ -34,18 +34,19 @@ output "tailscale_exit_ip" {
 }
 ```
 
-### Adding the IP to a Cloud Armor address group
+### Feeding the IP into Cloud Armor
 
-The `lb-cloud-armor` module uses a Cloud Armor address group for IP allowlisting (managed outside Terraform). After deploying the exit node, add its IP to the address group:
+```hcl
+module "api_lb" {
+  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/lb-cloud-armor?ref=v1.1.4"
 
-```bash
-# Get the exit node IP from Terraform output
-EXIT_IP=$(terraform output -raw exit_node_ip)
+  # ... other inputs ...
 
-# Add it to your Cloud Armor address group
-gcloud compute address-groups add-items my-allowlist \
-  --items="${EXIT_IP}/32" \
-  --region=asia-southeast1
+  allowed_ip_ranges = concat(
+    var.static_office_ips,
+    [module.tailscale_exit_node.exit_node_ip_cidr],
+  )
+}
 ```
 
 ### Locking down SSH after setup
@@ -102,6 +103,7 @@ sudo sysctl -p
 | Name                 | Description                                                     |
 | -------------------- | --------------------------------------------------------------- |
 | exit_node_ip         | Static external IP                                              |
+| exit_node_ip_cidr    | IP as `/32` CIDR — drop straight into `allowed_ip_ranges`       |
 | exit_node_name       | VM name                                                         |
 | exit_node_self_link  | VM self_link                                                    |
 | exit_node_zone       | VM zone                                                         |

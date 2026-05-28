@@ -28,33 +28,25 @@ We follow [Semantic Versioning 2.0.0](https://semver.org/). Version numbers are 
 
 ## Creating a New Release
 
-Tagging and releases are **automated** via GitHub Actions (`.github/workflows/merge.yml` + `tag.yml`).
-
 ### 1. Make Your Changes
 
-Make your changes to the module(s) and merge a PR to the `main` branch:
+Make your changes to the module(s) and commit them to the `main` branch:
 
 ```bash
 git add .
 git commit -m "feat: add support for VPC connector in Cloud Run module"
-# Push to a branch, open a PR, and merge
+git push origin main
 ```
 
-### 2. Automated Tagging & Release
+### 2. Determine the Version Number
 
-When a commit lands on `main`, the CI pipeline automatically:
+Based on your changes:
 
-1. **Creates a semver tag** using `mathieudutour/github-tag-action` — the bump type is derived from the commit message:
-   - `feat!:` or `BREAKING CHANGE` → MAJOR
-   - `feat:` → MINOR
-   - anything else → PATCH
-2. **Creates a GitHub Release** with the new tag.
+- **Breaking change?** → Increment MAJOR version
+- **New feature?** → Increment MINOR version
+- **Bug fix?** → Increment PATCH version
 
-> **Tip:** Use [squash merges](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/about-pull-request-merges#squash-and-merge-your-commits) so the commit title controls the bump type.
-
-### 3. Manual Tagging (Fallback)
-
-If you need to create a tag manually:
+### 3. Create and Push a Git Tag
 
 ```bash
 # Create an annotated tag
@@ -64,7 +56,12 @@ git tag -a v1.1.0 -m "Release v1.1.0: Add VPC connector support"
 git push origin v1.1.0
 ```
 
-You can also trigger the tag workflow manually via the GitHub Actions UI using the **workflow_dispatch** event on `tag.yml`.
+### 4. Create a GitHub Release (Optional but Recommended)
+
+1. Go to `https://github.com/veridianlab/project-fox-infra/releases/new`
+2. Select the tag you just created
+3. Add release notes describing the changes
+4. Publish the release
 
 ## Git Tag Commands
 
@@ -232,23 +229,25 @@ However, **repository-level versioning is recommended** for simplicity when mult
 
 ## Workflow Example
 
-Releases are created automatically when commits land on `main`. Here's the typical workflow:
+Here's a complete workflow for releasing a new version:
 
 ```bash
-# 1. Make changes on a feature branch
-git checkout -b feat/cloudrun-vpc-connector
+# 1. Make changes and commit
+git checkout main
+git pull origin main
 # ... make your changes ...
 git add .
 git commit -m "feat(cloudrun): add VPC connector support"
 
-# 2. Push and open a PR
-git push -u origin feat/cloudrun-vpc-connector
-gh pr create --title "feat(cloudrun): add VPC connector support"
+# 2. Push changes
+git push origin main
 
-# 3. Merge the PR (use squash merge for clean conventional commit titles)
-gh pr merge --squash
+# 3. Create and push tag
+git tag -a v1.1.0 -m "Release v1.1.0: Add VPC connector support to Cloud Run module"
+git push origin v1.1.0
 
-# 4. CI automatically tags and creates a GitHub Release
+# 4. Create GitHub release (via web UI or gh CLI)
+gh release create v1.1.0 --title "v1.1.0" --notes "Added VPC connector support"
 ```
 
 ## Questions?
