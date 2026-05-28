@@ -8,13 +8,13 @@ GCP VM configured as a Tailscale exit node with a static external IP. The static
 - e2-micro VM running Ubuntu 22.04 LTS (defaults; overridable)
 - `can_ip_forward = true` (required for exit-node routing)
 - Firewall rules: Tailscale UDP 41641 (open) + SSH TCP 22 (source-restrictable, toggleable)
-- Outputs the IP as both a raw address and a `/32` CIDR ready to paste into `allowed_ip_ranges`
+- Outputs the IP as both a raw address and a `/32` CIDR ready to add to the application's IP whitelist
 
 ## How It Works
 
 1. A developer / service enables Tailscale, picks this VM as their exit node.
 2. Traffic egresses GCP via this VM's static IP.
-3. The IP is allowlisted in Cloud Armor (`lb-cloud-armor` module) or any upstream ACL.
+3. The IP is allowlisted via the application's IP whitelist (managed at runtime, not via Terraform).
 4. No per-client IP whitelisting needed — everyone routing through Tailscale looks like this single IP.
 
 ## Usage
@@ -34,19 +34,16 @@ output "tailscale_exit_ip" {
 }
 ```
 
-### Feeding the IP into Cloud Armor
+### Using the exit node IP with the application's IP whitelist
+
+The `lb-cloud-armor` module no longer accepts `allowed_ip_ranges` — IP allow rules are managed by the application at runtime. Use the `exit_node_ip_cidr` output to add the exit node's IP to the application's IP whitelist configuration:
 
 ```hcl
-module "api_lb" {
-  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/lb-cloud-armor?ref=v1.1.4"
-
-  # ... other inputs ...
-
-  allowed_ip_ranges = concat(
-    var.static_office_ips,
-    [module.tailscale_exit_node.exit_node_ip_cidr],
-  )
-}
+# The exit node IP is available as an output:
+#   module.tailscale_exit_node.exit_node_ip_cidr  →  e.g. "203.0.113.50/32"
+#
+# Add this CIDR to the application's IP whitelist (environment variable,
+# database config, etc.) so traffic routed through the exit node is allowed.
 ```
 
 ### Locking down SSH after setup
@@ -103,7 +100,7 @@ sudo sysctl -p
 | Name                 | Description                                                     |
 | -------------------- | --------------------------------------------------------------- |
 | exit_node_ip         | Static external IP                                              |
-| exit_node_ip_cidr    | IP as `/32` CIDR — drop straight into `allowed_ip_ranges`       |
+| exit_node_ip_cidr    | IP as `/32` CIDR — add to the application's IP whitelist       |
 | exit_node_name       | VM name                                                         |
 | exit_node_self_link  | VM self_link                                                    |
 | exit_node_zone       | VM zone                                                         |

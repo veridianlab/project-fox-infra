@@ -37,13 +37,3 @@ variable "domains" {
     error_message = "domains must contain at least one domain."
   }
 }
-
-variable "allowed_ip_ranges" {
-  description = "CIDR ranges allowed through Cloud Armor. Everything else is denied with HTTP 403."
-  type        = list(string)
-
-  validation {
-    condition     = length(var.allowed_ip_ranges) > 0
-    error_message = "allowed_ip_ranges must contain at least one CIDR — an empty list would make the LB deny all traffic."
-  }
-}

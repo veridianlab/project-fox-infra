@@ -16,23 +16,12 @@ resource "google_compute_region_network_endpoint_group" "serverless_neg" {
   }
 }
 
-# Cloud Armor security policy: default deny, allow listed IPs
+# Cloud Armor security policy: default deny
+# Allow rules are managed by the application at runtime, not by Terraform.
 resource "google_compute_security_policy" "cloud_armor" {
   project = var.project_id
   name    = "${var.lb_name}-armor"
   type    = "CLOUD_ARMOR"
-
-  rule {
-    action   = "allow"
-    priority = 1000
-    match {
-      versioned_expr = "SRC_IPS_V1"
-      config {
-        src_ip_ranges = var.allowed_ip_ranges
-      }
-    }
-    description = "Allow allowlisted IPs"
-  }
 
   # Default rule is immutable in existence (priority 2147483647) but its action is editable.
   # Declaring it here makes the deny(403) default explicit.
