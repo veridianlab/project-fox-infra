@@ -82,3 +82,4 @@ module "backend_service" {
 4. **Default deny rule.** The Cloud Armor default rule (priority 2147483647) cannot be deleted, only modified. It's declared here explicitly as `deny(403)`.
 5. **Changing `domains` recreates the cert.** The cert name carries a `random_id` suffix keyed on the domain list, and the resource uses `create_before_destroy`, so the new cert is provisioned before the old one is removed. Expect a fresh provisioning wait whenever domains change.
 6. **Cost.** Global LB, static IP, and Cloud Armor all have ongoing costs — see GCP pricing pages.
+7. **Breaking change (v1.2.0).** The `allowed_ip_ranges` variable has been removed. IP allowlisting is now handled entirely by the application at runtime. If upgrading from a previous version, remove `allowed_ip_ranges` from your module block and migrate any static IPs to the application's IP whitelist settings page.

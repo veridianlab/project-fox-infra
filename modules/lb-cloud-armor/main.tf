@@ -36,6 +36,13 @@ resource "google_compute_security_policy" "cloud_armor" {
     }
     description = "Default deny all"
   }
+
+  # The application manages allow rules at runtime (priorities 1000+).
+  # Without ignore_changes, terraform apply would plan removal of all
+  # undeclared rules added by lynx-haven's Cloud Armor sync.
+  lifecycle {
+    ignore_changes = [rule]
+  }
 }
 
 # Backend service wrapping the serverless NEG, with Cloud Armor attached
