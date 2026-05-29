@@ -82,9 +82,9 @@ module "backend_service" {
 3. **Allow rules are managed by the application.** The Cloud Armor policy deployed here contains only the default deny rule. IP allow rules are added and managed by the application at runtime, not via Terraform.
 4. **Default deny rule.** A standalone `google_compute_security_policy_rule` resource enforces `deny(403)` at priority 2147483647. This resource is independent of the parent policy's `ignore_changes = [rule]`, so Terraform will create and drift-correct it on every plan. No manual gcloud step is needed.
 5. **Drift monitoring.** Because `ignore_changes = [rule]` suppresses drift detection for inline rules, consider a Cloud Monitoring alert on security policy mutations (`log filter: resource.type="gce_security_policy"`). The standalone default-deny and bootstrap resources are tracked normally; this alert covers any unexpected changes to app-managed rules at priorities 1000+.
-5. **Changing `domains` recreates the cert.** The cert name carries a `random_id` suffix keyed on the domain list, and the resource uses `create_before_destroy`, so the new cert is provisioned before the old one is removed. Expect a fresh provisioning wait whenever domains change.
-6. **Cost.** Global LB, static IP, and Cloud Armor all have ongoing costs — see GCP pricing pages.
-7. **Breaking change (v1.2.0).** The `allowed_ip_ranges` variable has been removed. IP allowlisting is now handled entirely by the application at runtime. If upgrading from a previous version, remove `allowed_ip_ranges` from your module block and migrate any static IPs to the application's IP whitelist settings page.
+6. **Changing `domains` recreates the cert.** The cert name carries a `random_id` suffix keyed on the domain list, and the resource uses `create_before_destroy`, so the new cert is provisioned before the old one is removed. Expect a fresh provisioning wait whenever domains change.
+7. **Cost.** Global LB, static IP, and Cloud Armor all have ongoing costs — see GCP pricing pages.
+8. **Breaking change (v1.2.0).** The `allowed_ip_ranges` variable has been removed. IP allowlisting is now handled entirely by the application at runtime. If upgrading from a previous version, remove `allowed_ip_ranges` from your module block and migrate any static IPs to the application's IP whitelist settings page.
 
 ### Migration from v1.1.x to v1.2.0
 
