@@ -62,6 +62,7 @@ module "backend_service" {
 | cloudrun_service_name     | Name of the Cloud Run service behind the LB   | `string`       | -       | yes      |
 | cloudrun_service_location | Region of the Cloud Run service (NEG region)   | `string`       | -       | yes      |
 | domains                   | Domains for the managed SSL cert (1-100 SANs)  | `list(string)` | -       | yes      |
+| bootstrap_allow_ranges    | Transitional allow-list for zero-downtime migration to app-managed rules. Clear after app sync is live. | `list(string)` | `[]`    | no       |
 
 ## Outputs
 
@@ -79,7 +80,7 @@ module "backend_service" {
 1. **DNS must be in place before the cert activates.** Google-managed certs only provision after the cert's domains resolve to this LB's IP. Expect 15–60 minutes after DNS is live (sometimes up to 24h). Check status with `gcloud compute ssl-certificates describe <name>`.
 2. **Restrict Cloud Run ingress.** The IP allowlist is only enforced for traffic through the LB. If Cloud Run ingress stays `INGRESS_TRAFFIC_ALL`, clients can hit `https://<service>-<hash>-<region>.run.app` directly and bypass Cloud Armor entirely. Set `ingress = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"` on the cloudrun module.
 3. **Allow rules are managed by the application.** The Cloud Armor policy deployed here contains only the default deny rule. IP allow rules are added and managed by the application at runtime, not via Terraform.
-4. **Default deny rule.** The Cloud Armor default rule (priority 2147483647) cannot be deleted, only modified. It's declared here explicitly as `deny(403)`.
+4. **Default deny rule.** The Cloud Armor default rule (priority 2147483647) cannot be deleted, only modified. GCP creates it implicitly when the policy is created; it is not declared in Terraform.
 5. **Changing `domains` recreates the cert.** The cert name carries a `random_id` suffix keyed on the domain list, and the resource uses `create_before_destroy`, so the new cert is provisioned before the old one is removed. Expect a fresh provisioning wait whenever domains change.
 6. **Cost.** Global LB, static IP, and Cloud Armor all have ongoing costs — see GCP pricing pages.
 7. **Breaking change (v1.2.0).** The `allowed_ip_ranges` variable has been removed. IP allowlisting is now handled entirely by the application at runtime. If upgrading from a previous version, remove `allowed_ip_ranges` from your module block and migrate any static IPs to the application's IP whitelist settings page.

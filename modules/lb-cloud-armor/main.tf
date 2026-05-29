@@ -29,15 +29,14 @@ resource "google_compute_security_policy" "cloud_armor" {
   name    = "${var.lb_name}-armor"
   type    = "CLOUD_ARMOR"
 
-  # WARNING: The app-managed sync starts assigning rules at priority 1000.
-  # This bootstrap rule MUST be cleared (set bootstrap_allow_ranges = [])
-  # before the first application sync, otherwise GCP will reject the
-  # AddRule call due to a priority conflict.
+  # Bootstrap rule for zero-downtime migration from Terraform-managed to
+  # app-managed IP rules. Uses priority 500 (below the app's 1000+ range)
+  # so both can coexist during the transition. Clear once app sync is live.
   dynamic "rule" {
     for_each = length(var.bootstrap_allow_ranges) > 0 ? [1] : []
     content {
       action      = "allow"
-      priority    = 1000
+      priority    = 500
       description = "Bootstrap: transitional allow during app-managed migration"
       match {
         versioned_expr = "SRC_IPS_V1"
@@ -51,6 +50,12 @@ resource "google_compute_security_policy" "cloud_armor" {
   # The application manages allow rules at runtime (priorities 1000+).
   # Without ignore_changes, terraform apply would plan removal of all
   # undeclared rules added by lynx-haven's Cloud Armor sync.
+  #
+  # Trade-off: Terraform will not detect drift on ANY rule, including
+  # the implicit default-deny at priority 2147483647. However, GCP does
+  # not allow deleting that rule (only modifying its action), and the
+  # app sync only operates at priority 1000+, so accidental modification
+  # of the default-deny is extremely unlikely.
   lifecycle {
     ignore_changes = [rule]
   }
