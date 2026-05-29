@@ -18,23 +18,34 @@ resource "google_compute_region_network_endpoint_group" "serverless_neg" {
 
 # Cloud Armor security policy: default deny
 # Allow rules are managed by the application at runtime, not by Terraform.
+#
+# GCP automatically creates a default-deny rule at priority 2147483647 when
+# the policy is created. This rule cannot be deleted, only modified. We do
+# not declare it here — with ignore_changes enabled, a declared block would
+# be write-once and never drift-corrected, offering no benefit over GCP's
+# implicit default.
 resource "google_compute_security_policy" "cloud_armor" {
   project = var.project_id
   name    = "${var.lb_name}-armor"
   type    = "CLOUD_ARMOR"
 
-  # Default rule is immutable in existence (priority 2147483647) but its action is editable.
-  # Declaring it here makes the deny(403) default explicit.
-  rule {
-    action   = "deny(403)"
-    priority = 2147483647
-    match {
-      versioned_expr = "SRC_IPS_V1"
-      config {
-        src_ip_ranges = ["*"]
+  # WARNING: The app-managed sync starts assigning rules at priority 1000.
+  # This bootstrap rule MUST be cleared (set bootstrap_allow_ranges = [])
+  # before the first application sync, otherwise GCP will reject the
+  # AddRule call due to a priority conflict.
+  dynamic "rule" {
+    for_each = length(var.bootstrap_allow_ranges) > 0 ? [1] : []
+    content {
+      action      = "allow"
+      priority    = 1000
+      description = "Bootstrap: transitional allow during app-managed migration"
+      match {
+        versioned_expr = "SRC_IPS_V1"
+        config {
+          src_ip_ranges = var.bootstrap_allow_ranges
+        }
       }
     }
-    description = "Default deny all"
   }
 
   # The application manages allow rules at runtime (priorities 1000+).

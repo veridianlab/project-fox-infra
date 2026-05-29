@@ -1,6 +1,6 @@
 # Tailscale Exit Node Module
 
-GCP VM configured as a Tailscale exit node with a static external IP. The static IP is the stable egress point that you add to Cloud Armor (or any third-party) allowlists, so every device routing via the exit node is allowlisted.
+GCP VM configured as a Tailscale exit node with a static external IP. The static IP is the stable egress point that you add to the application's runtime IP whitelist so every device routing via the exit node is allowlisted.
 
 ## Features
 

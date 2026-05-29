@@ -37,3 +37,9 @@ variable "domains" {
     error_message = "domains must contain at least one domain."
   }
 }
+
+variable "bootstrap_allow_ranges" {
+  description = "Transitional allow-list applied during migration to app-managed rules. Set to current CIDRs while flipping over, then back to [] once the app has populated runtime rules."
+  type        = list(string)
+  default     = []
+}

@@ -14,7 +14,7 @@ Global external HTTPS Load Balancer with a Cloud Armor policy fronting a Cloud R
 
 1. Client hits `https://<domain>/` → DNS resolves to the LB's static IP.
 2. Global forwarding rule (port 443) → target HTTPS proxy → URL map → backend service.
-3. Cloud Armor evaluates the source IP against the policy rules. Non-matching IPs get a 403.
+3. Cloud Armor evaluates the source IP against the policy rules. The Terraform-managed baseline is default-deny only (GCP implicit rule); the application populates allow rules at runtime via the IP whitelist sync. Until the app has synced at least one allow rule after apply, all traffic is denied with 403.
 4. Allowed requests forward via the serverless NEG to Cloud Run.
 5. Cloud Run is set to `ingress = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"` so the `*.run.app` URL can't be used to bypass the LB.
 
@@ -22,7 +22,7 @@ Global external HTTPS Load Balancer with a Cloud Armor policy fronting a Cloud R
 
 ```hcl
 module "api_lb" {
-  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/lb-cloud-armor?ref=v1.1.4"
+  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/lb-cloud-armor?ref=v1.2.0"
 
   project_id  = "project-fox-staging"
   region      = "asia-southeast1"
@@ -44,7 +44,7 @@ Pair with Cloud Run:
 
 ```hcl
 module "backend_service" {
-  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/cloudrun?ref=v1.1.4"
+  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/cloudrun?ref=v1.2.0"
 
   # ...
   ingress = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
