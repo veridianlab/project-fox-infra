@@ -21,7 +21,7 @@ GCP VM configured as a Tailscale exit node with a static external IP. The static
 
 ```hcl
 module "tailscale_exit_node" {
-  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/tailscale-exit-node?ref=v1.1.5"
+  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/tailscale-exit-node?ref=v1.2.0"
 
   project_id  = "project-fox-production"
   region      = "asia-southeast1"

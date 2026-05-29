@@ -56,7 +56,7 @@ module "backend_service" {
 | Name                      | Description                                    | Type           | Default | Required |
 | ------------------------- | ---------------------------------------------- | -------------- | ------- | -------- |
 | project_id                | GCP project ID                                 | `string`       | -       | yes      |
-| region                    | GCP region (parity with sibling modules)       | `string`       | -       | yes      |
+| region                    | GCP region (parity only; not used by global LB resources) | `string` | -       | yes      |
 | lb_name                   | Name prefix for all LB resources               | `string`       | -       | yes      |
 | environment               | Environment name                               | `string`       | -       | yes      |
 | cloudrun_service_name     | Name of the Cloud Run service behind the LB   | `string`       | -       | yes      |
@@ -80,7 +80,34 @@ module "backend_service" {
 1. **DNS must be in place before the cert activates.** Google-managed certs only provision after the cert's domains resolve to this LB's IP. Expect 15–60 minutes after DNS is live (sometimes up to 24h). Check status with `gcloud compute ssl-certificates describe <name>`.
 2. **Restrict Cloud Run ingress.** The IP allowlist is only enforced for traffic through the LB. If Cloud Run ingress stays `INGRESS_TRAFFIC_ALL`, clients can hit `https://<service>-<hash>-<region>.run.app` directly and bypass Cloud Armor entirely. Set `ingress = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"` on the cloudrun module.
 3. **Allow rules are managed by the application.** The Cloud Armor policy deployed here contains only the default deny rule. IP allow rules are added and managed by the application at runtime, not via Terraform.
-4. **Default deny rule.** The Cloud Armor default rule (priority 2147483647) cannot be deleted, only modified. GCP creates it implicitly when the policy is created; it is not declared in Terraform.
+4. **Default deny rule.** GCP creates a default rule at priority 2147483647 when the policy is created. Its initial action is `allow`. For existing policies that were previously configured with `deny(403)`, the `ignore_changes` lifecycle preserves that setting. For fresh deployments, ensure the application or operator sets the default rule to deny before relying on this module for access control.
 5. **Changing `domains` recreates the cert.** The cert name carries a `random_id` suffix keyed on the domain list, and the resource uses `create_before_destroy`, so the new cert is provisioned before the old one is removed. Expect a fresh provisioning wait whenever domains change.
 6. **Cost.** Global LB, static IP, and Cloud Armor all have ongoing costs — see GCP pricing pages.
 7. **Breaking change (v1.2.0).** The `allowed_ip_ranges` variable has been removed. IP allowlisting is now handled entirely by the application at runtime. If upgrading from a previous version, remove `allowed_ip_ranges` from your module block and migrate any static IPs to the application's IP whitelist settings page.
+
+### Migration from v1.1.x to v1.2.0
+
+Use `bootstrap_allow_ranges` for a zero-downtime transition:
+
+```hcl
+# Step 1: Add the bootstrap variable with your current CIDRs
+module "api_lb" {
+  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/lb-cloud-armor?ref=v1.2.0"
+
+  # ... other variables ...
+
+  bootstrap_allow_ranges = ["203.0.113.10/32", "198.51.100.0/24"]  # your current IPs
+}
+```
+
+Apply, then deploy the application with the runtime IP whitelist sync enabled. Verify rules exist:
+
+```bash
+gcloud compute security-policies describe <POLICY_NAME>
+```
+
+Once the app has synced its allow rules, set `bootstrap_allow_ranges = []` and apply again. **Note:** The bootstrap rule at priority 500 must be deleted manually because `ignore_changes` prevents Terraform from removing it:
+
+```bash
+gcloud compute security-policies rules delete <POLICY_NAME> --priority=500
+```

@@ -16,22 +16,30 @@ resource "google_compute_region_network_endpoint_group" "serverless_neg" {
   }
 }
 
-# Cloud Armor security policy: default deny
+# Cloud Armor security policy — relies on the default rule being set to deny(403).
 # Allow rules are managed by the application at runtime, not by Terraform.
 #
-# GCP automatically creates a default-deny rule at priority 2147483647 when
-# the policy is created. This rule cannot be deleted, only modified. We do
-# not declare it here — with ignore_changes enabled, a declared block would
-# be write-once and never drift-corrected, offering no benefit over GCP's
-# implicit default.
+# GCP creates a default rule at priority 2147483647 when the policy is created.
+# Its initial action is "allow". For existing policies that were previously
+# configured with deny(403) (as in this refactor), ignore_changes preserves
+# that setting. For fresh deployments, the application or operator must
+# explicitly set the default rule to deny before relying on this module for
+# access control (e.g. via gcloud or a google_compute_security_policy_rule).
+# We do not declare it here — with ignore_changes enabled, a declared block
+# would be write-once and never drift-corrected, offering no benefit.
 resource "google_compute_security_policy" "cloud_armor" {
   project = var.project_id
   name    = "${var.lb_name}-armor"
   type    = "CLOUD_ARMOR"
 
   # Bootstrap rule for zero-downtime migration from Terraform-managed to
-  # app-managed IP rules. Uses priority 500 (below the app's 1000+ range)
-  # so both can coexist during the transition. Clear once app sync is live.
+  # app-managed IP rules. Uses priority 500 (higher precedence than the app's
+  # 1000+ range) so both can coexist during the transition.
+  #
+  # NOTE: Because ignore_changes = [rule] suppresses all rule updates, setting
+  # bootstrap_allow_ranges back to [] will NOT remove this rule from GCP.
+  # After migration, delete it manually:
+  #   gcloud compute security-policies rules delete <POLICY> --priority=500
   dynamic "rule" {
     for_each = length(var.bootstrap_allow_ranges) > 0 ? [1] : []
     content {
@@ -52,10 +60,11 @@ resource "google_compute_security_policy" "cloud_armor" {
   # undeclared rules added by lynx-haven's Cloud Armor sync.
   #
   # Trade-off: Terraform will not detect drift on ANY rule, including
-  # the implicit default-deny at priority 2147483647. However, GCP does
-  # not allow deleting that rule (only modifying its action), and the
-  # app sync only operates at priority 1000+, so accidental modification
-  # of the default-deny is extremely unlikely.
+  # the default at priority 2147483647. GCP does not allow deleting that
+  # rule (only modifying its action), and the app sync only operates at
+  # priority 1000+, so accidental modification is unlikely. As a
+  # compensating control, consider a Cloud Monitoring alert on security
+  # policy mutations (log filter: resource.type="gce_security_policy").
   lifecycle {
     ignore_changes = [rule]
   }
