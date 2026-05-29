@@ -138,7 +138,7 @@ output "nat_ip" {
 
 ### Load Balancer + Cloud Armor Module
 
-Global external HTTPS Load Balancer with Cloud Armor for IP allowlisting in front of a Cloud Run service.
+Global external HTTPS Load Balancer with Cloud Armor (access-controlled via application-managed IP whitelist) in front of a Cloud Run service.
 
 📁 **Path**: `modules/lb-cloud-armor`  
 📖 **Documentation**: [modules/lb-cloud-armor/README.md](modules/lb-cloud-armor/README.md)

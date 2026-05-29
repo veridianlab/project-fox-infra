@@ -45,7 +45,7 @@ variable "bootstrap_allow_ranges" {
 
   validation {
     condition = length(var.bootstrap_allow_ranges) == 0 || alltrue([
-      for r in var.bootstrap_allow_ranges : can(regex("^(\\d{1,3}\\.){3}\\d{1,3}/\\d{1,2}$", r))
+      for r in var.bootstrap_allow_ranges : can(cidrhost(r, 0))
     ])
     error_message = "Each entry in bootstrap_allow_ranges must be a valid CIDR (e.g. 203.0.113.0/24)."
   }
