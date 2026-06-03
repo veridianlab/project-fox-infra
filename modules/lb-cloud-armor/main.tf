@@ -16,36 +16,64 @@ resource "google_compute_region_network_endpoint_group" "serverless_neg" {
   }
 }
 
-# Cloud Armor security policy: default deny, allow listed IPs
+# Cloud Armor security policy — the policy itself is a container; rules are
+# managed via separate google_compute_security_policy_rule resources below.
+# This allows default-deny enforcement and bootstrap rules to be drift-corrected
+# independently of ignore_changes, while the application manages allow rules at
+# runtime (priorities 1000+) without Terraform interference.
 resource "google_compute_security_policy" "cloud_armor" {
   project = var.project_id
   name    = "${var.lb_name}-armor"
   type    = "CLOUD_ARMOR"
 
-  rule {
-    action   = "allow"
-    priority = 1000
-    match {
-      versioned_expr = "SRC_IPS_V1"
-      config {
-        src_ip_ranges = var.allowed_ip_ranges
-      }
-    }
-    description = "Allow allowlisted IPs"
+  # Without ignore_changes, terraform apply would plan removal of all
+  # undeclared rules added by the application's Cloud Armor sync.
+  # Standalone google_compute_security_policy_rule resources (default_deny,
+  # bootstrap_allow) are NOT affected by this — they are separate resources
+  # with their own lifecycle management.
+  lifecycle {
+    ignore_changes = [rule]
   }
+}
 
-  # Default rule is immutable in existence (priority 2147483647) but its action is editable.
-  # Declaring it here makes the deny(403) default explicit.
-  rule {
-    action   = "deny(403)"
-    priority = 2147483647
-    match {
-      versioned_expr = "SRC_IPS_V1"
-      config {
-        src_ip_ranges = ["*"]
-      }
+# Default deny rule — ensures all traffic is blocked unless explicitly allowed.
+# GCP creates this rule at priority 2147483647 with action "allow" by default;
+# this resource overrides it to deny(403). As a standalone resource it is
+# immune to the parent policy's ignore_changes, so Terraform will drift-correct
+# it on every plan.
+resource "google_compute_security_policy_rule" "default_deny" {
+  project         = var.project_id
+  security_policy = google_compute_security_policy.cloud_armor.name
+  action          = "deny(403)"
+  priority        = 2147483647
+  description     = "Default deny all traffic"
+
+  match {
+    versioned_expr = "SRC_IPS_V1"
+    config {
+      src_ip_ranges = ["*"]
     }
-    description = "Default deny all"
+  }
+}
+
+# Bootstrap allow rule for zero-downtime migration from Terraform-managed to
+# app-managed IP rules. Uses priority 500 (higher precedence than the app's
+# 1000+ range) so both can coexist during the transition.
+# As a standalone resource with count, Terraform creates it when
+# bootstrap_allow_ranges is non-empty and removes it when the list is cleared.
+resource "google_compute_security_policy_rule" "bootstrap_allow" {
+  count           = length(var.bootstrap_allow_ranges) > 0 ? 1 : 0
+  project         = var.project_id
+  security_policy = google_compute_security_policy.cloud_armor.name
+  action          = "allow"
+  priority        = 500
+  description     = "Bootstrap: transitional allow during app-managed migration"
+
+  match {
+    versioned_expr = "SRC_IPS_V1"
+    config {
+      src_ip_ranges = var.bootstrap_allow_ranges
+    }
   }
 }
 

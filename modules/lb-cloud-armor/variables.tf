@@ -38,12 +38,15 @@ variable "domains" {
   }
 }
 
-variable "allowed_ip_ranges" {
-  description = "CIDR ranges allowed through Cloud Armor. Everything else is denied with HTTP 403."
+variable "bootstrap_allow_ranges" {
+  description = "Transitional allow-list applied during migration to app-managed rules. Set to current CIDRs while flipping over, then back to [] once the app has populated runtime rules. WARNING: Clearing this before the application has synced at least one allow rule will block all inbound traffic until the sync completes."
   type        = list(string)
+  default     = []
 
   validation {
-    condition     = length(var.allowed_ip_ranges) > 0
-    error_message = "allowed_ip_ranges must contain at least one CIDR — an empty list would make the LB deny all traffic."
+    condition = length(var.bootstrap_allow_ranges) == 0 || alltrue([
+      for r in var.bootstrap_allow_ranges : can(cidrhost(r, 0))
+    ])
+    error_message = "Each entry in bootstrap_allow_ranges must be a valid CIDR (e.g. 203.0.113.0/24)."
   }
 }

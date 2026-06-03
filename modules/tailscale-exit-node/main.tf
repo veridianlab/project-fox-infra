@@ -1,6 +1,5 @@
-# Static external IP for the Tailscale exit node — feed this into
-# Cloud Armor allowed_ip_ranges so traffic egressing the exit node
-# is allowlisted at the LB.
+# Static external IP for the Tailscale exit node — add this IP to the
+# application's IP whitelist so traffic egressing the exit node is allowed.
 resource "google_compute_address" "exit_node_ip" {
   project      = var.project_id
   name         = "${var.instance_name}-ip"

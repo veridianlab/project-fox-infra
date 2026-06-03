@@ -138,7 +138,7 @@ output "nat_ip" {
 
 ### Load Balancer + Cloud Armor Module
 
-Global external HTTPS Load Balancer with Cloud Armor for IP allowlisting in front of a Cloud Run service.
+Global external HTTPS Load Balancer with Cloud Armor (access-controlled via application-managed IP whitelist) in front of a Cloud Run service.
 
 📁 **Path**: `modules/lb-cloud-armor`  
 📖 **Documentation**: [modules/lb-cloud-armor/README.md](modules/lb-cloud-armor/README.md)
@@ -147,7 +147,7 @@ Global external HTTPS Load Balancer with Cloud Armor for IP allowlisting in fron
 
 - Global external HTTPS LB with reserved static IPv4
 - Serverless NEG to Cloud Run
-- Cloud Armor policy: default deny 403, allowlist for hotel / VPN / office IPs
+- Cloud Armor policy: default deny 403 (allow rules managed by the application at runtime)
 - Google-managed SSL cert (multi-domain)
 - Backend service request logging
 
@@ -155,7 +155,7 @@ Global external HTTPS Load Balancer with Cloud Armor for IP allowlisting in fron
 
 ```hcl
 module "api_lb" {
-  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/lb-cloud-armor?ref=v1.1.4"
+  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/lb-cloud-armor?ref=v1.2.0"
 
   project_id  = "my-gcp-project"
   region      = "asia-southeast1"
@@ -165,16 +165,15 @@ module "api_lb" {
   cloudrun_service_name     = module.backend_service.service_name
   cloudrun_service_location = module.backend_service.service_location
 
-  domains           = ["api.example.com"]
-  allowed_ip_ranges = ["203.0.113.10/32", "198.51.100.0/24"]
+  domains = ["api.example.com"]
 }
 ```
 
-**Use Case**: Restrict access to an internal/staging Cloud Run service to known office, hotel, or VPN IP ranges. Pair with `ingress = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"` on the cloudrun module so the `*.run.app` URL can't bypass the allowlist.
+**Use Case**: Restrict access to an internal/staging Cloud Run service. IP allow rules are managed by the application at runtime. Pair with `ingress = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"` on the cloudrun module so the `*.run.app` URL can't bypass Cloud Armor.
 
 ### Tailscale Exit Node Module
 
-GCP VM configured as a Tailscale exit node with a static external IP — a stable egress IP to feed into Cloud Armor / third-party allowlists.
+GCP VM configured as a Tailscale exit node with a static external IP — a stable egress IP to add to the application's IP whitelist.
 
 📁 **Path**: `modules/tailscale-exit-node`  
 📖 **Documentation**: [modules/tailscale-exit-node/README.md](modules/tailscale-exit-node/README.md)
@@ -190,7 +189,7 @@ GCP VM configured as a Tailscale exit node with a static external IP — a stabl
 
 ```hcl
 module "tailscale_exit_node" {
-  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/tailscale-exit-node?ref=v1.1.5"
+  source = "git::https://github.com/veridianlab/project-fox-infra.git//modules/tailscale-exit-node?ref=v1.2.0"
 
   project_id  = "my-gcp-project"
   region      = "asia-southeast1"
@@ -198,10 +197,10 @@ module "tailscale_exit_node" {
   environment = "production"
 }
 
-# Feed the IP straight into Cloud Armor
-module "api_lb" {
-  # ...
-  allowed_ip_ranges = [module.tailscale_exit_node.exit_node_ip_cidr]
+# The exit node IP is available as an output — add it to the
+# application's IP whitelist so traffic through the exit node is allowed.
+output "tailscale_exit_ip" {
+  value = module.tailscale_exit_node.exit_node_ip
 }
 ```
 
