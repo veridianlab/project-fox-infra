@@ -48,7 +48,7 @@ module "db_password_secret" {
   environment  = var.environment
 
   accessor_service_accounts = [
-    "${var.project_id}@appspot.gserviceaccount.com"  # Default App Engine service account
+    "${var.project_id}@appspot.gserviceaccount.com" # Default App Engine service account
   ]
 }
 
@@ -133,28 +133,26 @@ module "backend_service" {
 
   # VPC Access for Cloud SQL and Cloud NAT for outbound traffic
   vpc_connector_name = module.vpc_connector.connector_id
-  vpc_egress         = "all-traffic"  # Route ALL traffic through VPC to use Cloud NAT
+  vpc_egress         = "all-traffic" # Route ALL traffic through VPC to use Cloud NAT
 
   # Environment variables
+  # lynx-haven reads a single DATABASE_URL DSN (internal/platform/config/config.go),
+  # so compose it here from Cloud SQL outputs. Do NOT inject individual DB_*
+  # (DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASSWORD) vars — the app never reads them.
+  # This mirrors the live deploy terraform in lynx-haven/terraform/environments/*.
   env_vars = merge(
     {
-      GIN_MODE    = "release"
-      DB_HOST     = module.cloudsql.private_ip_address
-      DB_PORT     = "5432"
-      DB_NAME     = module.cloudsql.database_name
-      DB_USER     = "root"
-      ENVIRONMENT = var.environment
+      GIN_MODE     = "release"
+      ENVIRONMENT  = var.environment
+      DATABASE_URL = "postgres://root:${urlencode(random_password.db_password.result)}@${module.cloudsql.private_ip_address}:5432/${module.cloudsql.database_name}?sslmode=${var.db_require_ssl ? "require" : "disable"}"
     },
     var.additional_env_vars
   )
 
-  # Secrets
-  secrets = {
-    DB_PASSWORD = {
-      secret_name = module.db_password_secret.secret_name
-      version     = "latest"
-    }
-  }
+  # No secrets needed - DATABASE_URL contains everything (including the password).
+  # The password is also stored in Secret Manager by module.db_password_secret
+  # for recovery/rotation, but is not mounted as a separate env var.
+  secrets = {}
 
   depends_on = [
     module.vpc_connector,
