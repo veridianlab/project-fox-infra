@@ -61,7 +61,7 @@ terraform output database_connection_name
 │         Cloud Run Service           │
 │         (lynx-haven API)            │
 │                                     │
-│  - Reads DB_PASSWORD from Secret   │
+│  - Reads DATABASE_URL (DSN)        │
 │  - Connects via VPC Connector      │
 └──────────────┬──────────────────────┘
                │
