@@ -145,6 +145,15 @@ module "backend_service" {
       GIN_MODE     = "release"
       ENVIRONMENT  = var.environment
       DATABASE_URL = "postgres://root:${urlencode(random_password.db_password.result)}@${module.cloudsql.private_ip_address}:5432/${module.cloudsql.database_name}?sslmode=${var.db_require_ssl ? "require" : "disable"}"
+      # MILE-1352 OHIP recovery knobs, mirrored from the live deploy terraform.
+      # Both ship OFF ("0"): the committed knob exists so enablement is a
+      # Terraform change the RUNBOOK owns, never a manual `gcloud run services
+      # update` the next apply would revert. The app's deploy-time supervision
+      # invariant refuses any sweep-on/postcheck-off combination, so turning
+      # the sweep on here REQUIRES a non-zero REDEMPTION_POSTCHECK_INTERVAL in
+      # the same apply.
+      REDEMPTION_RETRY_SWEEP_INTERVAL = "0"
+      REDEMPTION_POSTCHECK_INTERVAL   = "0"
     },
     var.additional_env_vars
   )
